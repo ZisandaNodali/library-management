@@ -1,0 +1,7 @@
+[USERS]
+Zisanda|UhE*0I-74_98|Zisanda Nodal|zisandanodali01@gmail.com|false
+Lam|O6W]V;2<Kcqv|Lam Nodali|lam@gmail.com|true
+Lisa|qfg=Rc.$J4s%|Lisa Nodali|lisa@gmail.com|true
+
+[BOOKS]
+[BORROWING]

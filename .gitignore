@@ -1,0 +1,20 @@
+# Compiled class files
+*.class
+
+# Build output folders
+bin/
+out/
+
+# VS Code
+.vscode/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# macOS & Windows
+.DS_Store
+Thumbs.db
+
+# Optional: Ignore sensitive or local test data
+#LibraryData.txt
