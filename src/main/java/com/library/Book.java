@@ -4,6 +4,7 @@ public class Book {
     private String bookId;
     private String title;
     private String author;
+    private String status;
     private String genre;
     private int year;
     private String library;
@@ -18,6 +19,7 @@ public class Book {
         this.year = year;
         this.library = library;
         this.available = true;
+        this.status = "Available";
     }
 
     // Constructor with availability
@@ -29,11 +31,19 @@ public class Book {
         this.year = year;
         this.library = library;
         this.available = available;
+        this.status = available ? "Available" : "Not Available";
     }
 
     // Getters
     public String getBookId() {
         return bookId;
+    }
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getTitle() {
@@ -60,9 +70,10 @@ public class Book {
         return available;
     }
 
-    // Setter
+     // Setter
     public void setAvailable(boolean available) {
         this.available = available;
+        this.status = available ? "Available" : "Not Available";
     }
 
     @Override
@@ -73,6 +84,6 @@ public class Book {
                 + "Genre: " + genre + "\n"
                 + "Year: " + year + "\n"
                 + "Library: " + library + "\n"
-                + "Status: " + (available ? "Available" : "Borrowed");
+                + "Status: " + status;
     }
 }
