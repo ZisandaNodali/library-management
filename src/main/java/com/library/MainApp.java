@@ -10,6 +10,7 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) {
         LoginPage loginPage = new LoginPage(primaryStage);
         Scene scene = new Scene(loginPage, 400, 300);
+        primaryStage.setMaximized(true);
         primaryStage.setTitle("Library Login");
         primaryStage.setScene(scene);
         primaryStage.show();
