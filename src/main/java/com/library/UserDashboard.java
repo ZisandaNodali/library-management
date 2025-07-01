@@ -85,8 +85,8 @@ public class UserDashboard extends BorderPane {
         });
 
         viewBorrowedBtn.setOnAction(e -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "BorrowedBooksPage goes here.");
-            alert.showAndWait();
+            BorrowedBooksPage borrowedBooksPage = new BorrowedBooksPage(stage, user);
+            stage.setScene(new Scene(borrowedBooksPage, 700, 450));
         });
 
         logoutBtn.setOnAction(e -> {
