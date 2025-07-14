@@ -45,7 +45,7 @@ public class SignUpPage extends StackPane {
         overlay.prefWidthProperty().bind(widthProperty());
         overlay.prefHeightProperty().bind(heightProperty());
 
-        getChildren().add(bgImageView);
+        getChildren().addAll(bgImageView, overlay);
     }
 
     private VBox createSignUpForm(Stage stage) {
@@ -168,6 +168,11 @@ public class SignUpPage extends StackPane {
         VBox confirmPasswordSection = createFormField("Confirm Password");
         PasswordField confirmPasswordField = (PasswordField) confirmPasswordSection.getChildren().get(1);
 
+        // Admin checkbox
+        CheckBox adminCheckBox = new CheckBox("Register as Admin");
+        adminCheckBox.setFont(Font.font("Arial", FontWeight.NORMAL, 13));
+        adminCheckBox.setTextFill(Color.web("#333333"));
+
         Button signUpButton = createSignUpButton();
 
         HBox loginLinkSection = createLoginLink(stage);
@@ -205,7 +210,9 @@ public class SignUpPage extends StackPane {
                 return;
             }
 
-            User newUser = new User(username, password, fullName, email, false);
+            boolean isAdmin = adminCheckBox.isSelected();
+
+            User newUser = new User(username, password, fullName, email, isAdmin);
 
             LibraryService service = new LibraryService();
             boolean success = service.registerUser(newUser);
@@ -228,6 +235,7 @@ public class SignUpPage extends StackPane {
             usernameSection,
             passwordSection,
             confirmPasswordSection,
+            adminCheckBox,      // <-- Added admin checkbox here
             signUpButton,
             loginLinkSection,
             messageLabel
