@@ -17,5 +17,4 @@ com\library\Book.class
 com\library\ViewUsersPage.class
 com\library\ViewBooksPage.class
 com\library\AdminDashboard.class
-com\library\RegistrationPage.class
 com\library\BookSearchPage.class

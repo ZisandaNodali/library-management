@@ -1,6 +1,11 @@
 [USERS]
 Zisanda|UhE*0I-74_98|Zisanda Nodal|zisandanodali01@gmail.com|false
+johndoe|john123|John Doe|johndoe@gmail.com|false
+Libongwe Gana|ganatallyta03@gmail.com|ganatallyta2003|tallyta2003|false
 Lam|O6W]V;2<Kcqv|Lam Nodali|lam@gmail.com|true
+tallytagana|tallyta2004|thalitha gana|thalithagana@gmail.com|false
+Tallyta Gana|ganatallyta@gmail.com|ganatallyta|tallyta2003|false
+hazeljoie|hazel123|hazel joie|hazeljoie@gmail.com|false
 Lisa|qfg=Rc.$J4s%|Lisa Nodali|lisa@gmail.com|true
 
 [BOOKS]
