@@ -125,6 +125,7 @@ public class AdminDashboard extends StackPane {
         Button viewBooksBtn = createStyledButton("📖 View All Books", "#27ae60", "Browse the complete book collection");
         Button addBookBtn = createStyledButton("➕ Add New Book", "#2ecc71", "Add new titles to your library");
         Button manageBooksBtn = createStyledButton("✏️ Manage Books", "#f39c12", "Edit or remove existing books");
+        Button manageBorrowingBtn = createStyledButton("🔄 Manage Borrowing", "#9b59b6", "Update book borrowing status");
         Button logoutBtn = createLogoutButton();
 
         viewUsersBtn.setOnAction(e -> {
@@ -146,6 +147,11 @@ public class AdminDashboard extends StackPane {
             ManageBooksPage manageBooksPage = new ManageBooksPage(stage, admin);
             stage.setScene(new Scene(manageBooksPage, 700, 450));
         });
+        manageBorrowingBtn.setOnAction(e -> {
+        ManageBorrowingPage manageBorrowingPage = new ManageBorrowingPage(stage, admin);
+        stage.setScene(new Scene(manageBorrowingPage, 800, 500));
+    });
+
 
         logoutBtn.setOnAction(e -> {
             LoginPage loginPage = new LoginPage(stage);
@@ -155,6 +161,7 @@ public class AdminDashboard extends StackPane {
         // Arrange buttons in grid (2x2 + logout centered below)
         grid.add(viewUsersBtn, 0, 0);
         grid.add(viewBooksBtn, 1, 0);
+        grid.add(manageBorrowingBtn, 2, 0);
         grid.add(addBookBtn, 0, 1);
         grid.add(manageBooksBtn, 1, 1);
         
