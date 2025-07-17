@@ -1,74 +1,44 @@
 package com.library;
 
 import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.stage.Stage;
+import javafx.beans.property.StringProperty;
 
-import java.util.List;
-import java.util.Map;
-
-public class BorrowedBooksPage extends BorderPane {
-
-    public BorrowedBooksPage(Stage stage, User currentUser) {
-        setPadding(new Insets(20));
-
-        Label titleLabel = new Label("My Borrowed Books");
-        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
-
-        TableView<BorrowingRecord> tableView = new TableView<>();
-        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-
-        TableColumn<BorrowingRecord, String> titleCol = new TableColumn<>("Title");
-        titleCol.setCellValueFactory(data -> {
-            Book book = getBookById(data.getValue().getBookId());
-            String title = (book != null) ? book.getTitle() : "Unknown";
-            return new SimpleStringProperty(title);
-        });
-
-        TableColumn<BorrowingRecord, String> borrowDateCol = new TableColumn<>("Borrow Date");
-        borrowDateCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getBorrowDate()));
-
-        TableColumn<BorrowingRecord, String> returnDateCol = new TableColumn<>("Return Date");
-        returnDateCol.setCellValueFactory(data -> {
-            String returnDate = data.getValue().getReturnDate();
-            return new SimpleStringProperty(returnDate != null ? returnDate : "Not returned");
-        });
-
-        tableView.getColumns().addAll(titleCol, borrowDateCol, returnDateCol);
-
-        ObservableList<BorrowingRecord> userRecords = FXCollections.observableArrayList();
-        LibraryService service = new LibraryService();
-        List<BorrowingRecord> allRecords = service.getAllBorrowingRecords();
-
-        for (BorrowingRecord record : allRecords) {
-            if (record.getUsername().equals(currentUser.getUsername())) {
-                userRecords.add(record);
-            }
-        }
-
-        tableView.setItems(userRecords);
-
-        Button backButton = new Button("Back");
-        backButton.setOnAction(e -> {
-            UserDashboard dashboard = new UserDashboard(stage, currentUser);
-            stage.setScene(new Scene(dashboard, 600, 400));
-        });
-
-        VBox topBox = new VBox(10, titleLabel);
-        topBox.setPadding(new Insets(10));
-        setTop(topBox);
-        setCenter(tableView);
-        setBottom(new VBox(backButton));
+public class BorrowedBook {
+    private final StringProperty id;
+    private final StringProperty title;
+    private final StringProperty author;
+    private final StringProperty borrowerId;
+    private final StringProperty borrowerName;
+    private final StringProperty status;
+    private final StringProperty dueDate;
+    
+    public BorrowedBook(String id, String title, String author, 
+                       String borrowerId, String borrowerName, 
+                       String status, String dueDate) {
+        this.id = new SimpleStringProperty(id);
+        this.title = new SimpleStringProperty(title);
+        this.author = new SimpleStringProperty(author);
+        this.borrowerId = new SimpleStringProperty(borrowerId);
+        this.borrowerName = new SimpleStringProperty(borrowerName);
+        this.status = new SimpleStringProperty(status);
+        this.dueDate = new SimpleStringProperty(dueDate);
     }
-
-    private Book getBookById(String bookId) {
-        LibraryService service = new LibraryService();
-        Map<String, Book> books = service.getAllBooks();
-        return books.get(bookId);
-    }
+    
+    // Getters
+    public String getId() { return id.get(); }
+    public String getTitle() { return title.get(); }
+    public String getAuthor() { return author.get(); }
+    public String getBorrowerId() { return borrowerId.get(); }
+    public String getBorrowerName() { return borrowerName.get(); }
+    public String getStatus() { return status.get(); }
+    public String getDueDate() { return dueDate.get(); }
+    
+    // Property getters
+    public StringProperty idProperty() { return id; }
+    public StringProperty titleProperty() { return title; }
+    public StringProperty authorProperty() { return author; }
+    public StringProperty borrowerIdProperty() { return borrowerId; }
+    public StringProperty borrowerNameProperty() { return borrowerName; }
+    public StringProperty statusProperty() { return status; }
+    public StringProperty dueDateProperty() { return dueDate; }
 }
