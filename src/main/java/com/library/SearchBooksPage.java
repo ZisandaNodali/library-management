@@ -13,6 +13,7 @@ import javafx.beans.property.SimpleStringProperty;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.io.*;
 
 public class SearchBooksPage extends BorderPane {
 
@@ -93,23 +94,20 @@ public class SearchBooksPage extends BorderPane {
         });
 
         TableColumn<Book, Void> actionCol = new TableColumn<>("Action");
-actionCol.setCellFactory(param -> new TableCell<>() {
-    private final Button borrowBtn = new Button("Borrow");
+        actionCol.setCellFactory(param -> new TableCell<>() {
+            private final Button borrowBtn = new Button("Borrow");
 
-    {
-        borrowBtn.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold;");
+            {
+                borrowBtn.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold;");
 
-        borrowBtn.setOnAction(e -> {
-            Book book = getTableView().getItems().get(getIndex());
-            
-            
-            
-            if (!book.isAvailable()) {
-                showAlert(Alert.AlertType.WARNING, "Unavailable", "This book is not available for borrowing.");
-                return;
-            }
-
+                borrowBtn.setOnAction(e -> {
+                    Book book = getTableView().getItems().get(getIndex());
                     
+                    if (!book.isAvailable()) {
+                        showAlert(Alert.AlertType.WARNING, "Unavailable", "This book is not available for borrowing.");
+                        return;
+                    }
+
                     // Check if user has already borrowed this book
                     if (currentUser != null && currentUser.hasBorrowedBook(book.getBookId())) {
                         showAlert(Alert.AlertType.WARNING, "Already Borrowed", 
@@ -129,6 +127,9 @@ actionCol.setCellFactory(param -> new TableCell<>() {
 
                     // Update library data and save to persistent storage
                     libraryService.updateBook(book);
+                    
+                    // Save borrowing details to file with author information
+                    saveBorrowingDetailsToFile(book, currentUser, returnDate);
 
                     if (currentUser != null) {
                         currentUser.borrowBook(book.getBookId());
@@ -140,6 +141,7 @@ actionCol.setCellFactory(param -> new TableCell<>() {
                     // Show success message with return date
                     showAlert(Alert.AlertType.INFORMATION, "Success", 
                         "You have successfully borrowed the book!\n" +
+                        "Book: " + book.getTitle() + " by " + book.getAuthor() + "\n" +
                         "Please return by: " + returnDate.format(dateFormatter));
                 });
             }
@@ -151,7 +153,6 @@ actionCol.setCellFactory(param -> new TableCell<>() {
                     setGraphic(null);
                 } else {
                     Book book = getTableView().getItems().get(getIndex());
-                   
                     setGraphic(borrowBtn);
                 }
             }
@@ -182,6 +183,47 @@ actionCol.setCellFactory(param -> new TableCell<>() {
 
         // === ACTIONS ===
         searchButton.setOnAction(e -> performSearch());
+    }
+
+    private void saveBorrowingDetailsToFile(Book book, User user, LocalDate returnDate) {
+        try (FileWriter fw = new FileWriter("LibraryData.txt", true);
+             BufferedWriter bw = new BufferedWriter(fw);
+             PrintWriter out = new PrintWriter(bw)) {
+            
+            // Enhanced borrowing record with prominent Author field
+            String record = String.format("Borrowing Record: BookID=%s, Title=%s, Author=%s, " +
+                    "Username=%s, BorrowDate=%s, ReturnDate=%s, Status=Borrowed%n",
+                    book.getBookId(), 
+                    book.getTitle(), 
+                    book.getAuthor(),  // Author field prominently included
+                    user.getUsername(),
+                    LocalDate.now().format(dateFormatter), 
+                    returnDate.format(dateFormatter));
+            
+            out.println(record);
+            
+            // Optional: Add a more detailed record for better readability
+            String detailedRecord = String.format("=== BORROWING DETAILS ===%n" +
+                    "Book ID: %s%n" +
+                    "Title: %s%n" +
+                    "Author: %s%n" +
+                    "Borrowed by: %s%n" +
+                    "Borrow Date: %s%n" +
+                    "Return Date: %s%n" +
+                    "Status: Borrowed%n" +
+                    "=========================%n%n",
+                    book.getBookId(),
+                    book.getTitle(),
+                    book.getAuthor(),
+                    user.getUsername(),
+                    LocalDate.now().format(dateFormatter),
+                    returnDate.format(dateFormatter));
+            
+            out.println(detailedRecord);
+            
+        } catch (IOException e) {
+            showAlert(Alert.AlertType.ERROR, "Error", "Failed to save borrowing details: " + e.getMessage());
+        }
     }
 
     private void refreshTableData() {
