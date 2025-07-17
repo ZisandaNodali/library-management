@@ -9,7 +9,9 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-
+import javafx.beans.property.SimpleStringProperty;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class SearchBooksPage extends BorderPane {
@@ -18,12 +20,12 @@ public class SearchBooksPage extends BorderPane {
     private final TextField searchField;
     private final ComboBox<String> searchTypeBox;
     private final TableView<Book> tableView;
-    private final Button viewBtn = new Button("View");
-    private final Button borrowBtn = new Button("Borrow");
-    private final HBox actionBox = new HBox(10);
+    private final User currentUser;
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
 
     public SearchBooksPage(Stage stage, User user) {
         this.libraryService = new LibraryService();
+        this.currentUser = user;
 
         // === TOP ===
         VBox topContainer = new VBox(10);
@@ -76,9 +78,22 @@ public class SearchBooksPage extends BorderPane {
         TableColumn<Book, String> statusCol = new TableColumn<>("Status");
         statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
 
-      TableColumn<Book, Void> actionCol = new TableColumn<>("Action");
-actionCol.setCellFactory(param -> new TableCell<>() {
+        TableColumn<Book, String> borrowedCol = new TableColumn<>("Borrowed");
+        borrowedCol.setCellValueFactory(cellData -> {
+            Book book = cellData.getValue();
+            return new SimpleStringProperty(book.getBorrowedCount() > 0 ? "Yes" : "No");
+        });
 
+        TableColumn<Book, String> returnDateCol = new TableColumn<>("Return Date");
+        returnDateCol.setCellValueFactory(cellData -> {
+            Book book = cellData.getValue();
+            String returnDate = book.getReturnDate() != null ? 
+                book.getReturnDate().format(dateFormatter) : "Not borrowed";
+            return new SimpleStringProperty(returnDate);
+        });
+
+        TableColumn<Book, Void> actionCol = new TableColumn<>("Action");
+actionCol.setCellFactory(param -> new TableCell<>() {
     private final Button borrowBtn = new Button("Borrow");
 
     {
@@ -86,43 +101,64 @@ actionCol.setCellFactory(param -> new TableCell<>() {
 
         borrowBtn.setOnAction(e -> {
             Book book = getTableView().getItems().get(getIndex());
+            
+            
+            
             if (!book.isAvailable()) {
-                Alert alert = new Alert(Alert.AlertType.WARNING, "This book is already borrowed.");
-                alert.setTitle("Unavailable");
-                alert.showAndWait();
+                showAlert(Alert.AlertType.WARNING, "Unavailable", "This book is not available for borrowing.");
                 return;
             }
 
-            book.setAvailable(false);
-            book.setStatus("Pending");
+                    
+                    // Check if user has already borrowed this book
+                    if (currentUser != null && currentUser.hasBorrowedBook(book.getBookId())) {
+                        showAlert(Alert.AlertType.WARNING, "Already Borrowed", 
+                            "You have already borrowed this book!\nReturn date: " + 
+                            book.getReturnDate().format(dateFormatter));
+                        return;
+                    }
+                    
+                    // Set return date (2 weeks from now)
+                    LocalDate returnDate = LocalDate.now().plusWeeks(2);
+                    book.setReturnDate(returnDate);
+                    
+                    // Update book status
+                    book.setBorrowedCount(book.getBorrowedCount() + 1);
+                    book.setAvailable(false);
+                    book.setStatus("Not Available");
 
+                    // Update library data and save to persistent storage
+                    libraryService.updateBook(book);
 
-            Map<String, Book> books = libraryService.getAllBooks();
-            books.put(book.getBookId(), book);
-            libraryService.saveBooks(books);
+                    if (currentUser != null) {
+                        currentUser.borrowBook(book.getBookId());
+                    }
+                    
+                    // Refresh the table to show updated status
+                    tableView.refresh();
+                    
+                    // Show success message with return date
+                    showAlert(Alert.AlertType.INFORMATION, "Success", 
+                        "You have successfully borrowed the book!\n" +
+                        "Please return by: " + returnDate.format(dateFormatter));
+                });
+            }
 
-            tableView.refresh();
-
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Book borrowed successfully!");
-            alert.setTitle("Success");
-            alert.showAndWait();
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    Book book = getTableView().getItems().get(getIndex());
+                   
+                    setGraphic(borrowBtn);
+                }
+            }
         });
-    }
 
-    @Override
-    protected void updateItem(Void item, boolean empty) {
-        super.updateItem(item, empty);
-        if (empty) {
-            setGraphic(null);
-        } else {
-            HBox buttonBox = new HBox(borrowBtn);
-            buttonBox.setAlignment(Pos.CENTER);
-            setGraphic(buttonBox);
-        }
-    }
-});
-
-        tableView.getColumns().addAll(titleCol, authorCol, genreCol, yearCol, locationCol, statusCol, actionCol);
+        tableView.getColumns().addAll(titleCol, authorCol, genreCol, yearCol, locationCol, 
+                                    statusCol, borrowedCol, returnDateCol, actionCol);
 
         // === BOTTOM ===
         Button backButton = new Button("Back");
@@ -141,11 +177,15 @@ actionCol.setCellFactory(param -> new TableCell<>() {
         setCenter(tableView);
         setBottom(bottomBox);
 
-        tableView.setItems(FXCollections.observableArrayList(libraryService.getAllBooks().values()));
-
+        // Load initial data
+        refreshTableData();
 
         // === ACTIONS ===
         searchButton.setOnAction(e -> performSearch());
+    }
+
+    private void refreshTableData() {
+        tableView.setItems(FXCollections.observableArrayList(libraryService.getAllBooks().values()));
     }
 
     private void performSearch() {
@@ -153,12 +193,14 @@ actionCol.setCellFactory(param -> new TableCell<>() {
         String type = searchTypeBox.getValue();
 
         if (searchTerm.isEmpty()) {
-            tableView.setItems(FXCollections.observableArrayList());
+            refreshTableData();
             return;
         }
 
         List<Book> matches = new ArrayList<>();
-        for (Book book : libraryService.getAllBooks().values()) {
+        Map<String, Book> allBooks = libraryService.getAllBooks();
+        
+        for (Book book : allBooks.values()) {
             switch (type) {
                 case "Title":
                     if (book.getTitle().toLowerCase().contains(searchTerm)) matches.add(book);
@@ -173,5 +215,11 @@ actionCol.setCellFactory(param -> new TableCell<>() {
         }
 
         tableView.setItems(FXCollections.observableArrayList(matches));
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type, message);
+        alert.setTitle(title);
+        alert.showAndWait();
     }
 }
