@@ -186,45 +186,71 @@ public class SearchBooksPage extends BorderPane {
     }
 
     private void saveBorrowingDetailsToFile(Book book, User user, LocalDate returnDate) {
-        try (FileWriter fw = new FileWriter("LibraryData.txt", true);
-             BufferedWriter bw = new BufferedWriter(fw);
-             PrintWriter out = new PrintWriter(bw)) {
-            
-            // Enhanced borrowing record with prominent Author field
-            String record = String.format("Borrowing Record: BookID=%s, Title=%s, Author=%s, " +
-                    "Username=%s, BorrowDate=%s, ReturnDate=%s, Status=Borrowed%n",
-                    book.getBookId(), 
-                    book.getTitle(), 
-                    book.getAuthor(),  // Author field prominently included
-                    user.getUsername(),
-                    LocalDate.now().format(dateFormatter), 
-                    returnDate.format(dateFormatter));
-            
-            out.println(record);
-            
-            // Optional: Add a more detailed record for better readability
-            String detailedRecord = String.format("=== BORROWING DETAILS ===%n" +
-                    "Book ID: %s%n" +
-                    "Title: %s%n" +
-                    "Author: %s%n" +
-                    "Borrowed by: %s%n" +
-                    "Borrow Date: %s%n" +
-                    "Return Date: %s%n" +
-                    "Status: Borrowed%n" +
-                    "=========================%n%n",
-                    book.getBookId(),
-                    book.getTitle(),
-                    book.getAuthor(),
-                    user.getUsername(),
-                    LocalDate.now().format(dateFormatter),
-                    returnDate.format(dateFormatter));
-            
-            out.println(detailedRecord);
-            
+    File file = new File("LibraryData.txt");
+    List<String> lines = new ArrayList<>();
+    boolean recordUpdated = false;
+
+    // 1. Read existing file if it exists
+    if (file.exists()) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Check if this line is a borrowing record for this book
+                if (line.startsWith("Borrowing Record:") && 
+                    line.contains("BookID=" + book.getBookId()) && 
+                    line.contains("Status=Borrowed")) {
+                    // Update the status of existing borrowed record to "Returned"
+                    line = line.replace("Status=Borrowed", "Status=Returned");
+                    recordUpdated = true;
+                }
+                lines.add(line);
+            }
         } catch (IOException e) {
-            showAlert(Alert.AlertType.ERROR, "Error", "Failed to save borrowing details: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error", "Failed to read borrowing records: " + e.getMessage());
+            return;
         }
     }
+
+    // 2. Add the new borrowing record
+    String record = String.format("[BORROWING]%nBorrowing Record: BookID=%s, Title=%s, Author=%s, " +
+            "Username=%s, BorrowDate=%s, ReturnDate=%s, Status=Borrowed",
+            book.getBookId(), 
+            book.getTitle(), 
+            book.getAuthor(),
+            user.getUsername(),
+            LocalDate.now().format(dateFormatter), 
+            returnDate.format(dateFormatter));
+    
+    lines.add(record);
+
+    // 3. Add detailed record
+    String detailedRecord = String.format("%n=== BORROWING DETAILS ===%n" +
+            "Book ID: %s%n" +
+            "Title: %s%n" +
+            "Author: %s%n" +
+            "Borrowed by: %s%n" +
+            "Borrow Date: %s%n" +
+            "Return Date: %s%n" +
+            "Status: Borrowed%n" +
+            "=========================%n",
+            book.getBookId(),
+            book.getTitle(),
+            book.getAuthor(),
+            user.getUsername(),
+            LocalDate.now().format(dateFormatter),
+            returnDate.format(dateFormatter));
+    
+    lines.add(detailedRecord);
+
+    // 4. Write all records back to the file
+    try (PrintWriter out = new PrintWriter(new FileWriter(file))) {
+        for (String line : lines) {
+            out.println(line);
+        }
+    } catch (IOException e) {
+        showAlert(Alert.AlertType.ERROR, "Error", "Failed to save borrowing details: " + e.getMessage());
+    }
+}
 
     private void refreshTableData() {
         tableView.setItems(FXCollections.observableArrayList(libraryService.getAllBooks().values()));
