@@ -10,17 +10,19 @@ public class BorrowedBook {
     private final StringProperty borrowerId;
     private final StringProperty borrowerName;
     private final StringProperty status;
+    private final StringProperty borrowedDate;  // New field
     private final StringProperty dueDate;
     
     public BorrowedBook(String id, String title, String author, 
                        String borrowerId, String borrowerName, 
-                       String status, String dueDate) {
+                       String status, String borrowedDate, String dueDate) {
         this.id = new SimpleStringProperty(id);
         this.title = new SimpleStringProperty(title);
         this.author = new SimpleStringProperty(author);
         this.borrowerId = new SimpleStringProperty(borrowerId);
         this.borrowerName = new SimpleStringProperty(borrowerName);
         this.status = new SimpleStringProperty(status);
+        this.borrowedDate = new SimpleStringProperty(borrowedDate);  // Initialize new field
         this.dueDate = new SimpleStringProperty(dueDate);
     }
     
@@ -31,6 +33,7 @@ public class BorrowedBook {
     public String getBorrowerId() { return borrowerId.get(); }
     public String getBorrowerName() { return borrowerName.get(); }
     public String getStatus() { return status.get(); }
+    public String getBorrowedDate() { return borrowedDate.get(); }  // New getter
     public String getDueDate() { return dueDate.get(); }
     
     // Property getters
@@ -40,5 +43,6 @@ public class BorrowedBook {
     public StringProperty borrowerIdProperty() { return borrowerId; }
     public StringProperty borrowerNameProperty() { return borrowerName; }
     public StringProperty statusProperty() { return status; }
+    public StringProperty borrowedDateProperty() { return borrowedDate; }  // New property getter
     public StringProperty dueDateProperty() { return dueDate; }
 }
