@@ -73,37 +73,42 @@ public class ManageBorrowingPage extends BorderPane {
     }
     
     private TableView<BorrowedBook> createBorrowedBooksTable() {
-        TableView<BorrowedBook> tableView = new TableView<>();
-        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        tableView.setMaxWidth(800);
-        
-        // Book ID column
-        TableColumn<BorrowedBook, String> idCol = new TableColumn<>("Book ID");
-        idCol.setCellValueFactory(cellData -> cellData.getValue().idProperty());
-        
-        // Title column
-        TableColumn<BorrowedBook, String> titleCol = new TableColumn<>("Title");
-        titleCol.setCellValueFactory(cellData -> cellData.getValue().titleProperty());
-        
-        // Author column
-        TableColumn<BorrowedBook, String> authorCol = new TableColumn<>("Author");
-        authorCol.setCellValueFactory(cellData -> cellData.getValue().authorProperty());
-        
-        // Borrower column
-        TableColumn<BorrowedBook, String> borrowerCol = new TableColumn<>("Borrower");
-        borrowerCol.setCellValueFactory(cellData -> cellData.getValue().borrowerNameProperty());
-        
-        // Status column
-        TableColumn<BorrowedBook, String> statusCol = new TableColumn<>("Status");
-        statusCol.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
-        
-        // Due Date column
-        TableColumn<BorrowedBook, String> dueDateCol = new TableColumn<>("Due Date");
-        dueDateCol.setCellValueFactory(cellData -> cellData.getValue().dueDateProperty());
-        
-        tableView.getColumns().addAll(idCol, titleCol, authorCol, borrowerCol, statusCol, dueDateCol);
-        return tableView;
-    }
+    TableView<BorrowedBook> tableView = new TableView<>();
+    tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+    tableView.setMaxWidth(1000);  // Increased width to accommodate new column
+    
+    // Book ID column
+    TableColumn<BorrowedBook, String> idCol = new TableColumn<>("Book ID");
+    idCol.setCellValueFactory(cellData -> cellData.getValue().idProperty());
+    
+    // Title column
+    TableColumn<BorrowedBook, String> titleCol = new TableColumn<>("Title");
+    titleCol.setCellValueFactory(cellData -> cellData.getValue().titleProperty());
+    
+    // Author column
+    TableColumn<BorrowedBook, String> authorCol = new TableColumn<>("Author");
+    authorCol.setCellValueFactory(cellData -> cellData.getValue().authorProperty());
+    
+    // Borrower column
+    TableColumn<BorrowedBook, String> borrowerCol = new TableColumn<>("Borrower");
+    borrowerCol.setCellValueFactory(cellData -> cellData.getValue().borrowerNameProperty());
+    
+    // Borrowed Date column (NEW)
+    TableColumn<BorrowedBook, String> borrowedDateCol = new TableColumn<>("Borrowed Date");
+    borrowedDateCol.setCellValueFactory(cellData -> cellData.getValue().borrowedDateProperty());
+    
+    // Due Date column
+    TableColumn<BorrowedBook, String> dueDateCol = new TableColumn<>("Due Date");
+    dueDateCol.setCellValueFactory(cellData -> cellData.getValue().dueDateProperty());
+    
+    // Status column
+    TableColumn<BorrowedBook, String> statusCol = new TableColumn<>("Status");
+    statusCol.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
+    
+    tableView.getColumns().addAll(idCol, titleCol, authorCol, borrowerCol, 
+                                borrowedDateCol, dueDateCol, statusCol);
+    return tableView;
+}
     
     private HBox createSearchBox() {
         HBox searchBox = new HBox(10);
@@ -155,8 +160,6 @@ public class ManageBorrowingPage extends BorderPane {
     List<BorrowedBook> borrowedBooks = new ArrayList<>();
     File file = new File(FILE_PATH);
     
-    System.out.println("Looking for file at: " + file.getAbsolutePath());
-    
     if (!file.exists()) {
         showErrorAlert("File Not Found", "Library data file not found at: " + file.getAbsolutePath());
         return borrowedBooks;
@@ -169,15 +172,12 @@ public class ManageBorrowingPage extends BorderPane {
         while ((line = reader.readLine()) != null) {
             line = line.trim();
             
-            // Check for [BORROWING] section marker
             if (line.equals("[BORROWING]")) {
                 inBorrowingSection = true;
                 continue;
             }
             
-            // Only process lines in the borrowing section
             if (inBorrowingSection && line.startsWith("Borrowing Record:")) {
-                // Parse the borrowing record
                 String record = line.substring("Borrowing Record:".length()).trim();
                 Map<String, String> recordMap = parseBorrowingRecord(record);
                 
@@ -185,11 +185,12 @@ public class ManageBorrowingPage extends BorderPane {
                     BorrowedBook book = new BorrowedBook(
                         recordMap.get("BookID"),
                         recordMap.get("Title"),
-                        "", // Author not in your format
-                        "", // Borrower ID not in your format
+                        recordMap.get("Author"),
+                        "", // Borrower ID
                         recordMap.get("Username"),
                         recordMap.get("Status"),
-                        recordMap.get("ReturnDate")
+                        recordMap.get("BorrowDate"), // Borrowed Date
+                        recordMap.get("ReturnDate")  // Due Date
                     );
                     borrowedBooks.add(book);
                 }
@@ -201,7 +202,8 @@ public class ManageBorrowingPage extends BorderPane {
     }
     
     return borrowedBooks;
-    }
+}
+
     private Map<String, String> parseBorrowingRecord(String record) {
     Map<String, String> recordMap = new HashMap<>();
     String[] pairs = record.split(", ");
@@ -214,11 +216,13 @@ public class ManageBorrowingPage extends BorderPane {
     }
     
     // Verify we have all required fields
-    if (!recordMap.containsKey("BookID") || !recordMap.containsKey("Title") || 
-        !recordMap.containsKey("Username") || !recordMap.containsKey("Status") ||
-        !recordMap.containsKey("ReturnDate")) {
-        System.out.println("Incomplete borrowing record: " + record);
-        return null;
+    String[] requiredFields = {"BookID", "Title", "Author", "Username", "BorrowDate", "ReturnDate", "Status"};
+    for (String field : requiredFields) {
+        if (!recordMap.containsKey(field)) {
+            System.out.println("Missing field in borrowing record: " + field);
+            System.out.println("Complete record: " + record);
+            return null;
+        }
     }
     
     return recordMap;
@@ -251,55 +255,68 @@ public class ManageBorrowingPage extends BorderPane {
     }
     
     private boolean updateBookStatus(String bookId, String newStatus) {
-        File file = new File(FILE_PATH);
-        if (!file.exists()) {
-            showErrorAlert("File Not Found", "Library data file not found at: " + file.getAbsolutePath());
-            return false;
-        }
-        
-        try {
-            // Read all lines from file
-            List<String> lines = new ArrayList<>();
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    lines.add(line);
-                }
-            }
-            
-            // Find and update the specific book record
-            boolean found = false;
-            for (int i = 0; i < lines.size(); i++) {
-                if (lines.get(i).startsWith("BORROWED:")) {
-                    String[] parts = lines.get(i).substring(9).split(",");
-                    if (parts.length >= 7 && parts[0].trim().equals(bookId)) {
-                        // Update status (parts[5] is the status field)
-                        parts[5] = newStatus;
-                        lines.set(i, "BORROWED:" + String.join(",", parts));
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            
-            if (found) {
-                // Write all lines back to file
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                    for (String line : lines) {
-                        writer.write(line);
-                        writer.newLine();
-                    }
-                }
-                return true;
-            } else {
-                showErrorAlert("Update Failed", "Book record not found in library data.");
-                return false;
-            }
-        } catch (IOException e) {
-            showErrorAlert("Update Failed", "Error updating book status: " + e.getMessage());
-            return false;
-        }
+    File file = new File(FILE_PATH);
+    if (!file.exists()) {
+        showErrorAlert("File Not Found", "Library data file not found at: " + file.getAbsolutePath());
+        return false;
     }
+
+    try {
+        // Read all lines from file
+        List<String> lines = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                lines.add(line);
+            }
+        }
+
+        // Find and update the specific borrowing record
+        boolean found = false;
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i).trim();
+            if (line.startsWith("Borrowing Record:")) {
+                // Extract the record part
+                String record = line.substring("Borrowing Record:".length()).trim();
+                Map<String, String> recordMap = parseBorrowingRecord(record);
+                
+                if (recordMap != null && recordMap.get("BookID").equals(bookId)) {
+                    // Preserve all original values, only change status
+                    String updatedRecord = "Borrowing Record: " + 
+                        "BookID=" + recordMap.get("BookID") + ", " +
+                        "Title=" + recordMap.get("Title") + ", " +
+                        "Author=" + recordMap.get("Author") + ", " +
+                        "Username=" + recordMap.get("Username") + ", " +
+                        "BorrowDate=" + recordMap.get("BorrowDate") + ", " +
+                        "ReturnDate=" + recordMap.get("ReturnDate") + ", " +
+                        "Status=" + newStatus;
+                    
+                    lines.set(i, updatedRecord);
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        if (found) {
+            // Write all lines back to file
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                for (String line : lines) {
+                    writer.write(line);
+                    writer.newLine();
+                }
+            }
+            return true;
+        } else {
+            showErrorAlert("Update Failed", "Borrowing record not found for book ID: " + bookId);
+            return false;
+        }
+    } catch (IOException e) {
+        showErrorAlert("Update Failed", "Error updating book status: " + e.getMessage());
+        e.printStackTrace();
+        return false;
+    }
+}
     
     private void showSuccessAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
