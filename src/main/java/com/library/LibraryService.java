@@ -64,6 +64,10 @@ public class LibraryService {
     }
 
     public void saveUsers() {
+        // Read existing file content to preserve books and borrowing sections
+        Map<String, Book> existingBooks = getAllBooks();
+        List<BorrowingRecord> existingRecords = getAllBorrowingRecords();
+
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(DATA_FILE));
 
@@ -76,12 +80,25 @@ public class LibraryService {
                 writer.newLine();
             }
 
-            // Just preserve structure
             writer.newLine();
             writer.write(BOOKS_SECTION);
             writer.newLine();
+            // Preserve existing books
+            for (Book book : existingBooks.values()) {
+                writer.write(book.getBookId() + "|" + book.getTitle() + "|" + book.getAuthor() + "|" +
+                        book.getGenre() + "|" + book.getYear() + "|" + book.getLibrary() + "|" + book.isAvailable());
+                writer.newLine();
+            }
+
+            writer.newLine();
             writer.write(BORROWING_SECTION);
             writer.newLine();
+            // Preserve existing borrowing records
+            for (BorrowingRecord record : existingRecords) {
+                writer.write(record.getUsername() + "|" + record.getBookId() + "|" +
+                        record.getBorrowDate() + "|" + (record.getReturnDate() != null ? record.getReturnDate() : ""));
+                writer.newLine();
+            }
 
             writer.close();
         } catch (IOException e) {
@@ -102,23 +119,22 @@ public class LibraryService {
     }
 
     public Map<String, Book> getAllBooks() {
-        // Ideally this should load books from file if not already loaded
-        // For now, reuse existing code or load it here if necessary
         Map<String, Book> books = new HashMap<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("LibraryData.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(DATA_FILE))) {
             String line;
             boolean inBooks = false;
             while ((line = reader.readLine()) != null) {
-                if (line.trim().equals("[BOOKS]")) {
+                line = line.trim();
+                if (line.equals(BOOKS_SECTION)) {
                     inBooks = true;
                     continue;
                 }
-                if (inBooks && (line.trim().equals("[BORROWING]") || line.trim().equals("[USERS]"))) {
+                if (inBooks && (line.equals(BORROWING_SECTION) || line.equals(USERS_SECTION))) {
                     break;
                 }
 
-                if (inBooks && !line.trim().isEmpty()) {
+                if (inBooks && !line.isEmpty()) {
                     String[] parts = line.split("\\|");
                     if (parts.length >= 7) {
                         Book book = new Book(parts[0], parts[1], parts[2], parts[3], Integer.parseInt(parts[4]),
@@ -159,7 +175,9 @@ public class LibraryService {
                         String username = parts[0];
                         String bookId = parts[1];
                         String borrowDate = parts[2];
-                        String returnDate = (parts.length > 3 && !parts[3].equals("null")) ? parts[3] : null;
+                        String returnDate = (parts.length > 3 && !parts[3].equals("null") && !parts[3].trim().isEmpty())
+                                ? parts[3]
+                                : null;
 
                         BorrowingRecord record = new BorrowingRecord(username, bookId, borrowDate, returnDate);
                         borrowingRecords.add(record);
@@ -174,10 +192,14 @@ public class LibraryService {
     }
 
     public void updateBook(Book updatedBook) {
-        Map<String, Book> books = getAllBooks(); // Load current books
+        // Get all existing data
+        Map<String, Book> books = getAllBooks();
+        List<BorrowingRecord> borrowingRecords = getAllBorrowingRecords();
+
+        // Update the specific book
         books.put(updatedBook.getBookId(), updatedBook);
 
-        // Rewrite entire file including users and books
+        // Rewrite the entire file with all data
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(DATA_FILE))) {
             // Write users
             writer.write(USERS_SECTION);
@@ -191,6 +213,7 @@ public class LibraryService {
             writer.newLine();
             writer.write(BOOKS_SECTION);
             writer.newLine();
+            // Write all books (including the updated one)
             for (Book book : books.values()) {
                 writer.write(book.getBookId() + "|" + book.getTitle() + "|" + book.getAuthor() + "|" +
                         book.getGenre() + "|" + book.getYear() + "|" + book.getLibrary() + "|" + book.isAvailable());
@@ -200,10 +223,8 @@ public class LibraryService {
             writer.newLine();
             writer.write(BORROWING_SECTION);
             writer.newLine();
-
-            // Rewriting borrowing section (load + re-save)
-            List<BorrowingRecord> allRecords = getAllBorrowingRecords();
-            for (BorrowingRecord record : allRecords) {
+            // Write all borrowing records
+            for (BorrowingRecord record : borrowingRecords) {
                 writer.write(record.getUsername() + "|" + record.getBookId() + "|" +
                         record.getBorrowDate() + "|" + (record.getReturnDate() != null ? record.getReturnDate() : ""));
                 writer.newLine();
@@ -214,10 +235,15 @@ public class LibraryService {
         }
     }
 
-    public void addBorrowingRecord(BorrowingRecord record) {
+    public void addBorrowingRecord(BorrowingRecord newRecord) {
+        // Get all existing data
+        Map<String, Book> books = getAllBooks();
         List<BorrowingRecord> records = getAllBorrowingRecords();
-        records.add(record);
 
+        // Add the new record
+        records.add(newRecord);
+
+        // Rewrite the entire file with all data
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(DATA_FILE))) {
             // Write users
             writer.write(USERS_SECTION);
@@ -231,7 +257,8 @@ public class LibraryService {
             writer.newLine();
             writer.write(BOOKS_SECTION);
             writer.newLine();
-            for (Book book : getAllBooks().values()) {
+            // Write all books
+            for (Book book : books.values()) {
                 writer.write(book.getBookId() + "|" + book.getTitle() + "|" + book.getAuthor() + "|" +
                         book.getGenre() + "|" + book.getYear() + "|" + book.getLibrary() + "|" + book.isAvailable());
                 writer.newLine();
@@ -240,6 +267,7 @@ public class LibraryService {
             writer.newLine();
             writer.write(BORROWING_SECTION);
             writer.newLine();
+            // Write all borrowing records (including the new one)
             for (BorrowingRecord r : records) {
                 writer.write(r.getUsername() + "|" + r.getBookId() + "|" +
                         r.getBorrowDate() + "|" + (r.getReturnDate() != null ? r.getReturnDate() : ""));
@@ -257,67 +285,44 @@ public class LibraryService {
             return false;
 
         books.put(book.getBookId(), book);
-        saveBooks(books); // assumes this exists
+        saveBooks(books);
         return true;
     }
 
     public void saveBooks(Map<String, Book> books) {
-        try {
-            File file = new File(DATA_FILE);
-            List<String> lines = new ArrayList<>();
+        // Get existing data
+        List<BorrowingRecord> existingRecords = getAllBorrowingRecords();
 
-            // Read the current contents to preserve [USERS] and [BORROWING]
-            if (file.exists()) {
-                BufferedReader reader = new BufferedReader(new FileReader(file));
-                String line;
-                boolean inBooks = false;
-                while ((line = reader.readLine()) != null) {
-                    if (line.trim().equals(BOOKS_SECTION)) {
-                        inBooks = true;
-                        lines.add(line); // keep section header
-                        // skip existing books
-                        while ((line = reader.readLine()) != null && !line.trim().startsWith("[")) {
-                            // skip old book lines
-                        }
-                        if (line != null)
-                            lines.add(line); // next section header
-                    } else {
-                        lines.add(line);
-                    }
-                }
-                reader.close();
-            } else {
-                lines.add(USERS_SECTION);
-                lines.add("");
-                lines.add(BOOKS_SECTION);
-                lines.add("");
-                lines.add(BORROWING_SECTION);
-                lines.add("");
-            }
-
-            // Insert books into [BOOKS] section
-            int insertIndex = lines.indexOf(BOOKS_SECTION) + 1;
-            while (insertIndex < lines.size() && !lines.get(insertIndex).startsWith("[")) {
-                lines.remove(insertIndex); // remove old book entries
-            }
-
-            for (Book book : books.values()) {
-                lines.add(insertIndex++, String.join("|",
-                        book.getBookId(),
-                        book.getTitle(),
-                        book.getAuthor(),
-                        book.getGenre(),
-                        String.valueOf(book.getYear()),
-                        book.getLibrary(),
-                        String.valueOf(book.isAvailable())));
-            }
-
-            // Write back to file
-            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-            for (String line : lines) {
-                writer.write(line);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(DATA_FILE))) {
+            // Write users
+            writer.write(USERS_SECTION);
+            writer.newLine();
+            for (User user : users.values()) {
+                writer.write(user.getUsername() + "|" + user.getPassword() + "|" +
+                        user.getName() + "|" + user.getContact() + "|" + user.isAdmin());
                 writer.newLine();
             }
+
+            writer.newLine();
+            writer.write(BOOKS_SECTION);
+            writer.newLine();
+            // Write all books
+            for (Book book : books.values()) {
+                writer.write(book.getBookId() + "|" + book.getTitle() + "|" + book.getAuthor() + "|" +
+                        book.getGenre() + "|" + book.getYear() + "|" + book.getLibrary() + "|" + book.isAvailable());
+                writer.newLine();
+            }
+
+            writer.newLine();
+            writer.write(BORROWING_SECTION);
+            writer.newLine();
+            // Preserve existing borrowing records
+            for (BorrowingRecord record : existingRecords) {
+                writer.write(record.getUsername() + "|" + record.getBookId() + "|" +
+                        record.getBorrowDate() + "|" + (record.getReturnDate() != null ? record.getReturnDate() : ""));
+                writer.newLine();
+            }
+
             writer.close();
 
         } catch (IOException e) {
