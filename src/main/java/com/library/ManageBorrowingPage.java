@@ -47,11 +47,6 @@ public class ManageBorrowingPage extends BorderPane {
         returnBtn.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold;");
         returnBtn.setOnAction(e -> markAsReturned());
 
-        // Add debug button to help troubleshoot
-        Button debugBtn = new Button("Debug Selected");
-        debugBtn.setStyle("-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold;");
-        debugBtn.setOnAction(e -> debugSelected());
-
         Button backBtn = new Button("← Back to Dashboard");
         backBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
         backBtn.setOnAction(e -> {
@@ -60,7 +55,7 @@ public class ManageBorrowingPage extends BorderPane {
             stage.setMaximized(true);
         });
 
-        buttonBox.getChildren().addAll(returnBtn, debugBtn, backBtn);
+        buttonBox.getChildren().addAll(returnBtn, backBtn);
 
         // Add components to main container
         mainContainer.getChildren().addAll(
