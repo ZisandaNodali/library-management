@@ -47,6 +47,11 @@ public class ManageBorrowingPage extends BorderPane {
         returnBtn.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold;");
         returnBtn.setOnAction(e -> markAsReturned());
 
+        // Add debug button to help troubleshoot
+        Button debugBtn = new Button("Debug Selected");
+        debugBtn.setStyle("-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold;");
+        debugBtn.setOnAction(e -> debugSelected());
+
         Button backBtn = new Button("← Back to Dashboard");
         backBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
         backBtn.setOnAction(e -> {
@@ -55,7 +60,7 @@ public class ManageBorrowingPage extends BorderPane {
             stage.setMaximized(true);
         });
 
-        buttonBox.getChildren().addAll(returnBtn, backBtn);
+        buttonBox.getChildren().addAll(returnBtn, debugBtn, backBtn);
 
         // Add components to main container
         mainContainer.getChildren().addAll(
@@ -70,7 +75,7 @@ public class ManageBorrowingPage extends BorderPane {
     private TableView<BorrowedBook> createBorrowedBooksTable() {
         TableView<BorrowedBook> tableView = new TableView<>();
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        tableView.setMaxWidth(1000);
+        tableView.setMaxWidth(1200);
 
         // Book ID column
         TableColumn<BorrowedBook, String> idCol = new TableColumn<>("Book ID");
@@ -84,8 +89,12 @@ public class ManageBorrowingPage extends BorderPane {
         TableColumn<BorrowedBook, String> authorCol = new TableColumn<>("Author");
         authorCol.setCellValueFactory(cellData -> cellData.getValue().authorProperty());
 
-        // Borrower column
-        TableColumn<BorrowedBook, String> borrowerCol = new TableColumn<>("Borrower");
+        // Borrower Username column (NEW - for debugging)
+        TableColumn<BorrowedBook, String> usernameCol = new TableColumn<>("Username");
+        usernameCol.setCellValueFactory(cellData -> cellData.getValue().borrowerIdProperty());
+
+        // Borrower Name column
+        TableColumn<BorrowedBook, String> borrowerCol = new TableColumn<>("Borrower Name");
         borrowerCol.setCellValueFactory(cellData -> cellData.getValue().borrowerNameProperty());
 
         // Borrowed Date column
@@ -100,7 +109,7 @@ public class ManageBorrowingPage extends BorderPane {
         TableColumn<BorrowedBook, String> statusCol = new TableColumn<>("Status");
         statusCol.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
 
-        tableView.getColumns().addAll(idCol, titleCol, authorCol, borrowerCol,
+        tableView.getColumns().addAll(idCol, titleCol, authorCol, usernameCol, borrowerCol,
                 borrowedDateCol, dueDateCol, statusCol);
         return tableView;
     }
@@ -160,11 +169,20 @@ public class ManageBorrowingPage extends BorderPane {
             Map<String, Book> allBooks = libraryService.getAllBooks();
             Map<String, User> allUsers = libraryService.getAllUsers();
 
+            System.out.println("Total borrowing records: " + borrowingRecords.size());
+            System.out.println("Total books: " + allBooks.size());
+            System.out.println("Total users: " + allUsers.size());
+
             for (BorrowingRecord record : borrowingRecords) {
                 // Only show books that haven't been returned yet
                 if (record.getReturnDate() == null) {
                     Book book = allBooks.get(record.getBookId());
                     User user = allUsers.get(record.getUsername());
+
+                    System.out.println("Processing record - BookID: " + record.getBookId() +
+                            ", Username: " + record.getUsername() +
+                            ", Book found: " + (book != null) +
+                            ", User found: " + (user != null));
 
                     if (book != null && user != null) {
                         // Calculate due date (2 weeks from borrow date)
@@ -174,12 +192,19 @@ public class ManageBorrowingPage extends BorderPane {
                                 record.getBookId(),
                                 book.getTitle(),
                                 book.getAuthor(),
-                                record.getUsername(),
+                                record.getUsername(), // Store username as borrower ID
                                 user.getName(), // User's full name
                                 "BORROWED", // Status
                                 record.getBorrowDate(),
                                 dueDate);
                         borrowedBooks.add(borrowedBook);
+                    } else {
+                        if (book == null) {
+                            System.out.println("WARNING: Book not found for ID: " + record.getBookId());
+                        }
+                        if (user == null) {
+                            System.out.println("WARNING: User not found for username: " + record.getUsername());
+                        }
                     }
                 }
             }
@@ -203,10 +228,46 @@ public class ManageBorrowingPage extends BorderPane {
         }
     }
 
+    // Debug method to help troubleshoot
+    private void debugSelected() {
+        BorrowedBook selected = tableView.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            String debugInfo = "Selected Book Debug Info:\n" +
+                    "Book ID: " + selected.getId() + "\n" +
+                    "Username (stored): " + selected.getBorrowerId() + "\n" +
+                    "Borrower Name: " + selected.getBorrowerName() + "\n" +
+                    "Title: " + selected.getTitle();
+
+            // Also check what's actually in the borrowing records
+            List<BorrowingRecord> records = libraryService.getAllBorrowingRecords();
+            debugInfo += "\n\nMatching records in database:";
+
+            for (BorrowingRecord record : records) {
+                if (record.getBookId().equals(selected.getId()) && record.getReturnDate() == null) {
+                    debugInfo += "\nFound: BookID=" + record.getBookId() +
+                            ", Username=" + record.getUsername() +
+                            ", BorrowDate=" + record.getBorrowDate();
+                }
+            }
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Debug Information");
+            alert.setHeaderText(null);
+            alert.setContentText(debugInfo);
+            alert.showAndWait();
+        } else {
+            showWarningAlert("No Selection", "Please select a book to debug.");
+        }
+    }
+
     private void markAsReturned() {
         BorrowedBook selected = tableView.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            if (updateBorrowingRecord(selected.getId(), selected.getBorrowerName())) {
+            // Use the username stored in borrowerIdProperty (which should be the username)
+            String username = selected.getBorrowerId();
+            System.out.println("Attempting to return book - BookID: " + selected.getId() + ", Username: " + username);
+
+            if (updateBorrowingRecord(selected.getId(), username)) {
                 showSuccessAlert("Book Returned",
                         "Book '" + selected.getTitle() + "' has been marked as returned.");
                 refreshTableData();
@@ -222,9 +283,15 @@ public class ManageBorrowingPage extends BorderPane {
             List<BorrowingRecord> records = libraryService.getAllBorrowingRecords();
             Map<String, Book> books = libraryService.getAllBooks();
 
+            System.out.println("Looking for record with BookID: " + bookId + " and Username: " + username);
+
             // Find and update the borrowing record
             boolean found = false;
             for (BorrowingRecord record : records) {
+                System.out.println("Checking record - BookID: " + record.getBookId() +
+                        ", Username: " + record.getUsername() +
+                        ", ReturnDate: " + record.getReturnDate());
+
                 if (record.getBookId().equals(bookId) &&
                         record.getUsername().equals(username) &&
                         record.getReturnDate() == null) {
@@ -234,13 +301,15 @@ public class ManageBorrowingPage extends BorderPane {
                     java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
                             .ofPattern("MMM dd, yyyy");
                     record.setReturnDate(today.format(formatter));
+                    System.out.println("Found and updated record!");
                     found = true;
                     break;
                 }
             }
 
             if (!found) {
-                showErrorAlert("Update Failed", "Borrowing record not found.");
+                showErrorAlert("Update Failed",
+                        "Borrowing record not found for BookID: " + bookId + " and Username: " + username);
                 return false;
             }
 
