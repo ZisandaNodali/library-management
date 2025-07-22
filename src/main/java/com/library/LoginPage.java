@@ -178,9 +178,11 @@ public class LoginPage extends StackPane {
                 javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(Duration.seconds(1));
                 pause.setOnFinished(event -> {
                     if (user.isAdmin()) {
-                        stage.setScene(new Scene(new AdminDashboard(stage, user), 1000, 700));
+                        // stage.setScene(new Scene(new AdminDashboard(stage, user), 1000, 700));
+                        stage.getScene().setRoot(new AdminDashboard(stage, user));
                     } else {
-                        stage.setScene(new Scene(new UserDashboard(stage, user), 1000, 700));
+                        // stage.setScene(new Scene(new UserDashboard(stage, user), 1000, 700));
+                        stage.getScene().setRoot(new UserDashboard(stage, user));
                     }
                 });
                 pause.play();
@@ -194,8 +196,7 @@ public class LoginPage extends StackPane {
                 passwordSection,
                 loginButton,
                 messageLabel,
-                signupSection
-        );
+                signupSection);
 
         return fieldsContainer;
     }
@@ -217,14 +218,14 @@ public class LoginPage extends StackPane {
         signupLink.setStyle(
                 "-fx-padding: 0;" +
                         "-fx-border-color: transparent;" +
-                        "-fx-background-color: transparent;"
-        );
+                        "-fx-background-color: transparent;");
 
         signupLink.setOnMouseEntered(e -> signupLink.setTextFill(Color.web("#E55A2B")));
         signupLink.setOnMouseExited(e -> signupLink.setTextFill(Color.web("#FF6B35")));
 
         signupLink.setOnAction(e -> {
-            stage.setScene(new Scene(new SignUpPage(stage), 1000, 700));
+            // stage.setScene(new Scene(new SignUpPage(stage), 1000, 700));
+            stage.getScene().setRoot(new SignUpPage(stage));
         });
 
         signupSection.getChildren().addAll(questionLabel, signupLink);
@@ -254,8 +255,7 @@ public class LoginPage extends StackPane {
                         "-fx-border-width: 1px;" +
                         "-fx-border-radius: 8px;" +
                         "-fx-padding: 0 12px;" +
-                        "-fx-text-fill: #333333;"
-        );
+                        "-fx-text-fill: #333333;");
 
         inputField.focusedProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal) {
@@ -265,8 +265,7 @@ public class LoginPage extends StackPane {
                                 "-fx-border-width: 2px;" +
                                 "-fx-border-radius: 8px;" +
                                 "-fx-padding: 0 12px;" +
-                                "-fx-text-fill: #333333;"
-                );
+                                "-fx-text-fill: #333333;");
             } else {
                 inputField.setStyle(
                         "-fx-background-color: white;" +
@@ -274,8 +273,7 @@ public class LoginPage extends StackPane {
                                 "-fx-border-width: 1px;" +
                                 "-fx-border-radius: 8px;" +
                                 "-fx-padding: 0 12px;" +
-                                "-fx-text-fill: #333333;"
-                );
+                                "-fx-text-fill: #333333;");
             }
         });
 
@@ -293,22 +291,19 @@ public class LoginPage extends StackPane {
                 "-fx-background-color: #FF6B35;" +
                         "-fx-border-radius: 8px;" +
                         "-fx-background-radius: 8px;" +
-                        "-fx-cursor: hand;"
-        );
+                        "-fx-cursor: hand;");
 
         loginButton.setOnMouseEntered(e -> loginButton.setStyle(
                 "-fx-background-color: #E55A2B;" +
                         "-fx-border-radius: 8px;" +
                         "-fx-background-radius: 8px;" +
-                        "-fx-cursor: hand;"
-        ));
+                        "-fx-cursor: hand;"));
 
         loginButton.setOnMouseExited(e -> loginButton.setStyle(
                 "-fx-background-color: #FF6B35;" +
                         "-fx-border-radius: 8px;" +
                         "-fx-background-radius: 8px;" +
-                        "-fx-cursor: hand;"
-        ));
+                        "-fx-cursor: hand;"));
 
         return loginButton;
     }

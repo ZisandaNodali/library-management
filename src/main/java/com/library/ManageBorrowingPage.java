@@ -50,9 +50,10 @@ public class ManageBorrowingPage extends BorderPane {
         Button backBtn = new Button("← Back to Dashboard");
         backBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
         backBtn.setOnAction(e -> {
-            AdminDashboard dashboard = new AdminDashboard(stage, admin);
-            stage.setScene(new Scene(dashboard));
-            stage.setMaximized(true);
+            // AdminDashboard dashboard = new AdminDashboard(stage, admin);
+            // stage.setScene(new Scene(dashboard));
+            // stage.setMaximized(true);
+            stage.getScene().setRoot(new AdminDashboard(stage, admin));
         });
 
         buttonBox.getChildren().addAll(returnBtn, backBtn);

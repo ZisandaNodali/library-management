@@ -55,8 +55,9 @@ public class ViewUsersPage extends VBox {
         editBtn.setOnAction(e -> editUser());
         deleteBtn.setOnAction(e -> deleteUser());
         backBtn.setOnAction(e -> {
-            AdminDashboard dashboard = new AdminDashboard(stage, admin);
-            stage.setScene(new Scene(dashboard, 600, 400));
+            // AdminDashboard dashboard = new AdminDashboard(stage, admin);
+            // stage.setScene(new Scene(dashboard, 600, 400));
+            stage.getScene().setRoot(new AdminDashboard(stage, admin));
         });
 
         HBox controls = new HBox(10, editBtn, deleteBtn, backBtn);

@@ -55,8 +55,9 @@ public class BorrowedBooksPage extends BorderPane {
 
         Button backButton = new Button("Back");
         backButton.setOnAction(e -> {
-            UserDashboard dashboard = new UserDashboard(stage, currentUser);
-            stage.setScene(new Scene(dashboard, 600, 400));
+            // UserDashboard dashboard = new UserDashboard(stage, currentUser);
+            // stage.setScene(new Scene(dashboard, 600, 400));
+            stage.getScene().setRoot(new UserDashboard(stage, currentUser));
         });
 
         VBox topBox = new VBox(10, titleLabel);

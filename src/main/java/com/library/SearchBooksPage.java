@@ -188,8 +188,9 @@ public class SearchBooksPage extends BorderPane {
         Button backButton = new Button("Back");
         backButton.setStyle("-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-font-weight: bold;");
         backButton.setOnAction(e -> {
-            UserDashboard dashboard = new UserDashboard(stage, user);
-            stage.setScene(new Scene(dashboard, 800, 600));
+            // UserDashboard dashboard = new UserDashboard(stage, user);
+            // stage.setScene(new Scene(dashboard, 800, 600));
+            stage.getScene().setRoot(new UserDashboard(stage, user));
         });
 
         HBox bottomBox = new HBox(backButton);

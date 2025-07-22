@@ -59,8 +59,9 @@ public class ManageBooksPage extends VBox {
         editButton.setOnAction(e -> editSelectedBook(stage, admin));
         deleteButton.setOnAction(e -> deleteSelectedBook());
         backButton.setOnAction(e -> {
-            AdminDashboard dashboard = new AdminDashboard(stage, admin);
-            stage.setScene(new Scene(dashboard, 600, 400));
+            // AdminDashboard dashboard = new AdminDashboard(stage, admin);
+            // stage.setScene(new Scene(dashboard, 600, 400));
+            stage.getScene().setRoot(new AdminDashboard(stage, admin));
         });
 
         HBox buttons = new HBox(10, editButton, deleteButton, backButton);

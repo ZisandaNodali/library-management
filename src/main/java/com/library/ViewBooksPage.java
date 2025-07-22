@@ -48,8 +48,9 @@ public class ViewBooksPage extends BorderPane {
 
         Button backButton = new Button("Back");
         backButton.setOnAction(e -> {
-            AdminDashboard dashboard = new AdminDashboard(stage, admin);
-            stage.setScene(new Scene(dashboard, 600, 400));
+            // AdminDashboard dashboard = new AdminDashboard(stage, admin);
+            // stage.setScene(new Scene(dashboard, 600, 400));
+            stage.getScene().setRoot(new AdminDashboard(stage, admin));
         });
 
         VBox topBox = new VBox(10, title);

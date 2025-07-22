@@ -80,8 +80,9 @@ public class AddBookPage extends VBox {
         });
 
         backButton.setOnAction(e -> {
-            AdminDashboard dashboard = new AdminDashboard(stage, admin);
-            stage.setScene(new Scene(dashboard, 600, 400));
+            // AdminDashboard dashboard = new AdminDashboard(stage, admin);
+            // stage.setScene(new Scene(dashboard, 600, 400));
+            stage.getScene().setRoot(new AdminDashboard(stage, admin));
         });
 
         getChildren().addAll(titleLabel, titleField, authorField, genreField, yearField, libraryField, saveButton,
