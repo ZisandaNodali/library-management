@@ -1,20 +1,13 @@
 [USERS]
-Zisanda|UhE*0I-74_98|Zisanda Nodal|zisandanodali01@gmail.com|false
-Libongwe Gana|ganatallyta03@gmail.com|ganatallyta2003|tallyta2003|false
+Zisanda|h2vZPOJfRR|Zisanda Nodali|zisandanodali01@gmail.com|false
 Lam|O6W]V;2<Kcqv|Lam Nodali|lam@gmail.com|true
-tallytagana|tallyta2004|thalitha gana|thalithagana@gmail.com|false
-Tallyta Gana|ganatallyta@gmail.com|ganatallyta|tallyta2003|false
-hazeljoie|hazel123|hazel joie|hazeljoie@gmail.com|false
-Lisa|qfg=Rc.$J4s%|Lisa Nodali|lisa@gmail.com|true
-lilithajozi|lilitha123|Lilitha Jozi|lilithajozi@gmail.com|true
 
 [BOOKS]
-1e279adc-b788-4979-83df-3facedae2426|abcd|efg|hijk|2022|fgh|true
-435af203-e4e1-46ab-95c3-e6908295b6c5|zxcvb|ghjk|ahjlk|2019|add|true
-be8b2af9-7084-4dde-88de-bb709e8ca968|qwer|asdf|ghjd|2021|Zi|true
+63890af2-2603-45c7-abf2-8329ff9d381b|To Kill a Mockingbird|Harper Lee|Fiction|1960|Central City Library|true
+563b911a-af32-4c0e-9047-74b26761b7f0|The Hobbit|J.R.R. Tolkien|Fantasy|1937|Greenfield Public Library|true
+bc0c0c4d-b83a-4b1b-82b1-7d88a7c837c4|The Great Gatsby|F. Scott Fitzgerald|Classic|1925|Westview University Library|true
+017d8e0f-1746-48d3-9aed-0568aa386e1f|1984|George Orwell|Political Fiction|1949|Hillview Community Library|true
+f0f086f6-b003-41a6-8a5a-66aaa6213615|Sapiens: A Brief History of Humankind|Yuval Noah Harari|Non-fiction|2011|Downtown Knowledge Library|true
 
 [BORROWING]
-Zisanda|1343164e-e922-4ce1-89e1-338320e7dba0|Jul 21, 2025|
-Zisanda|1e279adc-b788-4979-83df-3facedae2426|Jul 21, 2025|Jul 21, 2025
-Zisanda|be8b2af9-7084-4dde-88de-bb709e8ca968|Jul 21, 2025|Jul 21, 2025
-Zisanda|435af203-e4e1-46ab-95c3-e6908295b6c5|Jul 21, 2025|Jul 21, 2025
+Zisanda|017d8e0f-1746-48d3-9aed-0568aa386e1f|Jul 22, 2025|Jul 22, 2025

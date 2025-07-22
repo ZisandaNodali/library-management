@@ -320,7 +320,11 @@ public class SignUpPage extends StackPane {
         loginLink.setOnMouseEntered(e -> loginLink.setStyle("-fx-cursor: hand; -fx-underline: true;"));
         loginLink.setOnMouseExited(e -> loginLink.setStyle("-fx-cursor: hand;"));
 
-        loginLink.setOnMouseClicked(e -> stage.setScene(new Scene(new LoginPage(stage), 1000, 700)));
+        // loginLink.setOnMouseClicked(e -> stage.setScene(new Scene(new
+        // LoginPage(stage), 1000, 700)));
+        loginLink.setOnMouseClicked(e -> {
+            stage.getScene().setRoot(new LoginPage(stage));
+        });
 
         loginLinkContainer.getChildren().addAll(alreadyHaveLabel, loginLink);
         return loginLinkContainer;
